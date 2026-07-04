@@ -1,8 +1,13 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/hooks/useLanguage";
+
 import {
   LayoutDashboard,
-  FileText,
+  FolderOpen,
   CalendarDays,
   Bell,
   Bot,
@@ -11,104 +16,131 @@ import {
 } from "lucide-react";
 
 export default function Sidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { t } = useLanguage();
+
+  async function logout() {
+    await supabase.auth.signOut();
+    router.replace("/login");
+  }
+
+  const menu = [
+    {
+      title: t.dashboard,
+      href: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+  title: "Documente",
+  href: "/dashboard/documents",
+  icon: FolderOpen,
+},
+    {
+      title: t.calendar,
+      href: "/dashboard/calendar",
+      icon: CalendarDays,
+      disabled: true,
+    },
+    {
+      title: t.notifications,
+      href: "/dashboard/notifications",
+      icon: Bell,
+      disabled: true,
+    },
+    {
+      title: t.ai,
+      href: "/dashboard/ai",
+      icon: Bot,
+      disabled: true,
+    },
+    {
+      title: t.settings,
+      href: "/dashboard/settings",
+      icon: Settings,
+      disabled: true,
+    },
+  ];
+
   return (
     <aside className="w-72 min-h-screen bg-slate-950 border-r border-slate-800 flex flex-col">
 
-      {/* LOGO */}
-      <div className="px-8 py-8 border-b border-slate-800">
-        <h1 className="text-3xl font-extrabold tracking-tight">
+      <div className="border-b border-slate-800 px-8 py-8">
+        <h1 className="text-3xl font-extrabold">
           <span className="text-blue-500">Remind</span>
           <span className="text-white">Docs</span>
         </h1>
 
-        <p className="text-slate-500 text-sm mt-2">
-          Smart document manager
+        <p className="mt-2 text-sm text-slate-500">
+          {t.smartManager}
         </p>
       </div>
 
-      {/* MENU */}
       <nav className="flex-1 px-5 py-8 space-y-2">
+        {menu.map((item) => {
+          const Icon = item.icon;
 
-        <button className="flex items-center gap-4 w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold transition hover:bg-blue-700">
-          <LayoutDashboard size={21} />
-          Dashboard
-        </button>
+          if (item.disabled) {
+            return (
+              <button
+                key={item.title}
+                disabled
+                className="flex items-center justify-between w-full rounded-xl px-4 py-3 text-slate-500 cursor-not-allowed"
+              >
+                <div className="flex items-center gap-4">
+                  <Icon size={20} />
+                  {item.title}
+                </div>
 
-        <button className="flex items-center gap-4 w-full rounded-xl px-4 py-3 text-slate-300 hover:bg-slate-900 transition">
-          <FileText size={21} />
-          Documente
-        </button>
+                <span className="rounded-full bg-slate-800 px-2 py-1 text-xs">
+                  {t.soon}
+                </span>
+              </button>
+            );
+          }
 
-        <button className="flex items-center justify-between w-full rounded-xl px-4 py-3 text-slate-300 hover:bg-slate-900 transition">
-          <div className="flex items-center gap-4">
-            <CalendarDays size={21} />
-            Calendar
-          </div>
+          const active =
+            pathname === "/dashboard" &&
+            item.href === "/dashboard";
 
-          <span className="text-xs bg-slate-800 px-2 py-1 rounded-full text-slate-400">
-            Soon
-          </span>
-        </button>
-
-        <button className="flex items-center justify-between w-full rounded-xl px-4 py-3 text-slate-300 hover:bg-slate-900 transition">
-          <div className="flex items-center gap-4">
-            <Bell size={21} />
-            Notificări
-          </div>
-
-          <span className="text-xs bg-slate-800 px-2 py-1 rounded-full text-slate-400">
-            Soon
-          </span>
-        </button>
-
-        <button className="flex items-center justify-between w-full rounded-xl px-4 py-3 text-slate-300 hover:bg-slate-900 transition">
-          <div className="flex items-center gap-4">
-            <Bot size={21} />
-            AI Assistant
-          </div>
-
-          <span className="text-xs bg-slate-800 px-2 py-1 rounded-full text-slate-400">
-            Soon
-          </span>
-        </button>
-
-        <button className="flex items-center justify-between w-full rounded-xl px-4 py-3 text-slate-300 hover:bg-slate-900 transition">
-          <div className="flex items-center gap-4">
-            <Settings size={21} />
-            Setări
-          </div>
-
-          <span className="text-xs bg-slate-800 px-2 py-1 rounded-full text-slate-400">
-            Soon
-          </span>
-        </button>
-
+          return (
+            <Link
+              key={item.title}
+              href={item.href}
+              className={`flex items-center gap-4 rounded-xl px-4 py-3 transition ${
+                active
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-300 hover:bg-slate-900"
+              }`}
+            >
+              <Icon size={20} />
+              {item.title}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* USER */}
       <div className="border-t border-slate-800 p-6">
 
-        <div className="flex items-center gap-3 mb-5">
-
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center font-bold">
-            D
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 font-bold">
+            U
           </div>
 
           <div>
-            <p className="font-semibold">
-              Utilizator
-            </p>
-
+            <p className="font-semibold">User</p>
             <p className="text-sm text-slate-500">
               RemindDocs
             </p>
           </div>
-
         </div>
 
-        <button className="flex items-center justify-center gap-2 w-full rounded-xl bg-red-600 hover:bg-red-700 py-3 transition font-semibold">
+        <button
+          onClick={logout}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3 font-semibold transition hover:bg-red-700"
+        >
           <LogOut size={18} />
-          Logout
+          {t.logout}
         </button>
 
       </div>

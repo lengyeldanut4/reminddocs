@@ -1,104 +1,109 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-export default function AIChat({ documents }: any) {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<any[]>([]);
+import { Send } from "lucide-react";
+
+export default function AIChat({ documents }: { documents: any[] }) {
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [chat, setChat] = useState<
+    { role: "user" | "ai"; text: string }[]
+  >([]);
 
   async function sendMessage() {
-    if (!input.trim()) return;
+    if (!message.trim()) return;
 
-    const newMessages = [
-      ...messages,
-      { role: "user", content: input },
-    ];
+    const userMsg = message;
+    setMessage("");
 
-    setMessages(newMessages);
-    setInput("");
+    setChat((prev) => [...prev, { role: "user", text: userMsg }]);
+
     setLoading(true);
 
-    try {
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: newMessages,
-          documents,
-        }),
-      });
+    // 🔥 SIMPLE AI LOGIC (local / upgrade later to OpenAI)
+    const expired = documents.filter(
+      (d) => new Date(d.expiry_date) < new Date()
+    ).length;
 
-      const data = await res.json();
+    const expiringSoon = documents.filter((d) => {
+      const diff =
+        (new Date(d.expiry_date).getTime() - Date.now()) /
+        (1000 * 60 * 60 * 24);
 
-      console.log("AI RESPONSE:", data);
+      return diff > 0 && diff < 30;
+    }).length;
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            data?.reply ||
-            "⚠️ Nu am primit răspuns de la AI",
-        },
-      ]);
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "Eroare la AI request.",
-        },
-      ]);
+    let response = "";
+
+    if (userMsg.toLowerCase().includes("expir")) {
+      response = `Ai ${expired} documente expirate și ${expiringSoon} care expiră curând.`;
+    } else if (userMsg.toLowerCase().includes("document")) {
+      response = `Ai în total ${documents.length} documente în sistem.`;
+    } else {
+      response =
+        "Pot să te ajut cu documentele tale, expirări și notificări.";
     }
 
-    setLoading(false);
+    setTimeout(() => {
+      setChat((prev) => [...prev, { role: "ai", text: response }]);
+      setLoading(false);
+    }, 600);
   }
 
   return (
-    <div className="mt-10 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-      <h3 className="text-xl font-bold mb-4">
-        🤖 AI PRO Assistant
-      </h3>
+    <div className="mt-8 bg-slate-900 border border-slate-800 rounded-2xl p-5">
 
-      <div className="space-y-2 max-h-60 overflow-y-auto mb-4">
-        {messages.length === 0 ? (
-          <p className="text-slate-400">
-            Întreabă despre documente...
-          </p>
-        ) : (
-          messages.map((m, i) => (
-            <div
-              key={i}
-              className={
-                m.role === "user"
-                  ? "text-blue-400"
-                  : "text-green-400"
-              }
-            >
-              <b>{m.role}:</b> {m.content}
-            </div>
-          ))
-        )}
+      {/* HEADER */}
+      <div className="mb-4">
+        <h3 className="text-xl font-bold">🤖 AI Assistant</h3>
+        <p className="text-slate-400 text-sm">
+          Întreabă despre documentele tale
+        </p>
       </div>
 
+      {/* CHAT BOX */}
+      <div className="h-64 overflow-y-auto space-y-3 mb-4 pr-2">
+
+        {chat.map((c, i) => (
+          <div
+            key={i}
+            className={`p-3 rounded-xl max-w-[80%] ${
+              c.role === "user"
+                ? "bg-blue-600 ml-auto"
+                : "bg-slate-800"
+            }`}
+          >
+            {c.text}
+          </div>
+        ))}
+
+        {loading && (
+          <div className="text-slate-400">AI scrie...</div>
+        )}
+
+      </div>
+
+      {/* INPUT */}
       <div className="flex gap-2">
+
         <input
-          className="flex-1 px-3 py-2 bg-slate-800 rounded"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ex: câte documente sunt active?"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Întreabă AI..."
+          className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2"
         />
 
         <button
           onClick={sendMessage}
-          className="bg-purple-600 px-4 py-2 rounded"
+          className="bg-blue-600 hover:bg-blue-700 px-4 rounded-xl flex items-center gap-2"
         >
-          {loading ? "..." : "Send"}
+          <Send size={18} />
         </button>
+
       </div>
+
     </div>
   );
 }
