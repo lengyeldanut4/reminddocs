@@ -127,4 +127,47 @@
   html {
     @apply font-sans;
   }
+  .fc {
+  color: white;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc-theme-standard .fc-scrollgrid {
+  border-color: #334155;
+}
+
+.fc-toolbar-title {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.fc-button {
+  background: #2563eb !important;
+  border: none !important;
+}
+
+.fc-button:hover {
+  background: #1d4ed8 !important;
+}
+
+.fc-daygrid-day-number {
+  color: white;
+}
+
+.fc-col-header-cell {
+  background: #0f172a;
+}
+
+.fc-daygrid-day {
+  background: #111827;
+}
+
+.fc-event {
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 3px 6px !important;
+  font-weight: 600;
+}
 }

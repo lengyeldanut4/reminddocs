@@ -12,19 +12,33 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
 
   const handleRegister = async () => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
 
-    if (error) {
-      alert(error.message);
-      return;
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  if (data.user) {
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .insert({
+        id: data.user.id,
+        email: data.user.email,
+        full_name: "",
+      });
+
+    if (profileError) {
+      console.error(profileError);
     }
+  }
 
-    alert("Cont creat cu succes! Verifică emailul.");
-    router.push("/login");
-  };
+  alert("Cont creat cu succes! Verifică emailul.");
+  router.push("/login");
+};
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
