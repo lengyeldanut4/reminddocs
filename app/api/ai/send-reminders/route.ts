@@ -20,9 +20,10 @@ export async function GET() {
 
   for (const user of users) {
     const { data: docs } = await supabase
-      .from("documents")
-      .select("title,expiry_date")
-      .eq("user_id", user.id);
+  .from("documents")
+  .select("id,title,expiry_date")
+  .eq("user_id", user.id)
+  .eq("reminder_sent", false);
 
     if (!docs || docs.length === 0) continue;
 
@@ -32,7 +33,7 @@ export async function GET() {
           (1000 * 60 * 60 * 24)
       );
 
-      return diff <= 30;
+      return diff >= 0 && diff <= 30;
     });
 
     if (expiring.length === 0) continue;
@@ -64,6 +65,15 @@ export async function GET() {
       subject: "RemindDocs - Documente care expiră",
       html,
     });
+    await supabase
+  .from("documents")
+  .update({
+    reminder_sent: true,
+  })
+  .in(
+    "id",
+    expiring.map((d) => d.id)
+  );
   }
 
   return NextResponse.json({
