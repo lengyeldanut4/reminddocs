@@ -25,6 +25,11 @@ interface DocumentItem {
   title: string;
   expiry_date: string;
   folder_id: string | null;
+
+  file_url: string | null;
+  file_name: string | null;
+  file_type: string | null;
+  file_path: string | null;
 }
 
 interface FolderInfo {
